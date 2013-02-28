@@ -1,0 +1,60 @@
+{
+   "abstract" : "Utility module for with-sound",
+   "author" : [
+      "moznion <moznion@gmail.com>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.112150",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "App-WithSound",
+   "no_index" : {
+      "directory" : [
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Test::MockObject::Extends" : "1.20120301",
+            "Test::More" : "0.98",
+            "Test::Warn" : "0.24"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.40"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Audio::Play::MPG123" : "0.63",
+            "Config::Simple" : "4.58",
+            "File::Path::Expand" : "1.02",
+            "File::Spec::Functions" : "3.40",
+            "perl" : "5.008001"
+         }
+      }
+   },
+   "provides" : {
+      "App::WithSound" : {
+         "file" : "lib/App/WithSound.pm",
+         "version" : "v1.0.0"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ],
+      "repository" : {
+         "url" : "git://github.com/moznion/App--WithSound.git"
+      }
+   },
+   "version" : "v1.0.0"
+}

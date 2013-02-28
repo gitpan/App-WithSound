@@ -1,0 +1,34 @@
+---
+abstract: 'Utility module for with-sound'
+author:
+  - 'moznion <moznion@gmail.com>'
+build_requires:
+  Test::MockObject::Extends: 1.20120301
+  Test::More: 0.98
+  Test::Warn: 0.24
+configure_requires:
+  Module::Build: 0.40
+dynamic_config: 1
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.112150'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: App-WithSound
+no_index:
+  directory:
+    - inc
+provides:
+  App::WithSound:
+    file: lib/App/WithSound.pm
+    version: v1.0.0
+requires:
+  Audio::Play::MPG123: 0.63
+  Config::Simple: 4.58
+  File::Path::Expand: 1.02
+  File::Spec::Functions: 3.40
+  perl: 5.008001
+resources:
+  license: http://dev.perl.org/licenses/
+  repository: git://github.com/moznion/App--WithSound.git
+version: v1.0.0
