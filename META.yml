@@ -1,5 +1,5 @@
 ---
-abstract: 'Utility module for with-sound'
+abstract: 'Execute commands with sound'
 author:
   - 'moznion <moznion@gmail.com>'
 build_requires:
@@ -21,7 +21,7 @@ no_index:
 provides:
   App::WithSound:
     file: lib/App/WithSound.pm
-    version: v1.0.0
+    version: v1.0.1
 requires:
   Audio::Play::MPG123: 0.63
   Config::Simple: 4.58
@@ -31,4 +31,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/moznion/App--WithSound.git
-version: v1.0.0
+version: v1.0.1
