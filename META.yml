@@ -3,6 +3,7 @@ abstract: 'Execute commands with sound'
 author:
   - 'moznion <moznion@gmail.com>'
 build_requires:
+  FindBin: 0
   Test::MockObject::Extends: 1.20120301
   Test::More: 0.98
   Test::Warn: 0.24
@@ -21,14 +22,16 @@ no_index:
 provides:
   App::WithSound:
     file: lib/App/WithSound.pm
-    version: v1.0.1
+    version: v1.0.2
 requires:
-  Audio::Play::MPG123: 0.63
+  Carp: 0
   Config::Simple: 4.58
   File::Path::Expand: 1.02
   File::Spec::Functions: 3.40
+  File::Which: 0.05
+  IPC::Open3: 0
   perl: 5.008001
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/moznion/App--WithSound.git
-version: v1.0.1
+version: v1.0.2

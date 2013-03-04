@@ -2,12 +2,14 @@ package App::WithSound;
 
 use warnings;
 use strict;
-our $VERSION = '1.0.1';
+our $VERSION = '1.0.2';
 
 use Carp;
-use Audio::Play::MPG123;
 use Config::Simple;
 use File::Path::Expand;
+use File::Which;
+use File::Spec::Functions qw/devnull/;
+use IPC::Open3;
 
 sub new {
     my ( $class, $config_file_path, $env ) = @_;
@@ -32,13 +34,23 @@ sub run {
     return $retval;
 }
 
+sub _detect_sound_play_command {
+    my $player;
+    $player ||= which('mpg123');
+    $player ||= which('mpg321');
+    $player ||= which('afplay');
+    return $player;
+}
+
 sub _load_sound_paths_from_env {
     my ($self) = @_;
     if ( $self->{env}->{WITH_SOUND_SUCCESS} ) {
-        $self->{success_sound_path} = expand_filename($self->{env}->{WITH_SOUND_SUCCESS});
+        $self->{success_sound_path} =
+          expand_filename( $self->{env}->{WITH_SOUND_SUCCESS} );
     }
     if ( $self->{env}->{WITH_SOUND_FAILURE} ) {
-        $self->{failure_sound_path} = expand_filename($self->{env}->{WITH_SOUND_FAILURE});
+        $self->{failure_sound_path} =
+          expand_filename( $self->{env}->{WITH_SOUND_FAILURE} );
     }
     $self;
 }
@@ -48,12 +60,13 @@ sub _load_sound_paths_from_config {
 
     # Not exists config file.
     unless ( -f $self->{config_file_path} ) {
-        carp "[WARNNING] Please put config file in '$self->{config_file_path}'\n";
+        carp
+          "[WARNNING] Please put config file in '$self->{config_file_path}'\n";
         return;
     }
     my $config = Config::Simple->new( $self->{config_file_path} );
-    $self->{success_sound_path} = expand_filename($config->param('SUCCESS'));
-    $self->{failure_sound_path} = expand_filename($config->param('FAILURE'));
+    $self->{success_sound_path} = expand_filename( $config->param('SUCCESS') );
+    $self->{failure_sound_path} = expand_filename( $config->param('FAILURE') );
     $self;
 }
 
@@ -66,19 +79,21 @@ sub _load_sound_paths {
     $self;
 }
 
-sub _sound_player {
-    my ( $self, $player ) = @_;
-    if ($player) {
-        $self->{sound_player} = $player;
-    }
-    $self->{sound_player} || Audio::Play::MPG123->new;
-}
-
 sub _play_mp3_in_child {
-    my ( $self, $mp3_file_path ) = @_;
-    my $player = $self->_sound_player;
-    $player->load($mp3_file_path);
-    $player->poll(1) until $player->state == 0;
+    my ( $self, $play_command, $mp3_file_path ) = @_;
+
+    my $devnull;
+    unless ( open( $devnull, '>', devnull ) ) {
+        carp "[WARNING] Couldn't open devnull : $!";
+        return;
+    }
+    eval {
+        my $wtr;
+        open3( $wtr, '>&' . fileno($devnull),
+            0, $play_command, $mp3_file_path, );
+        close $wtr;
+    };
+    carp "[WARNING] Couldn't exec $play_command in sound process: $@" if $@;
 }
 
 sub _play_mp3 {
@@ -92,16 +107,12 @@ sub _play_mp3 {
         return;
     }
 
-    my $pid = fork;
-    die "fork failed." unless defined $pid;
+    my $play_command = $self->_detect_sound_play_command;
+    carp
+      "[WARNING] No sound player is installed. please install mpg123 or mpg321"
+      unless $play_command;
 
-    if ( $pid == 0 ) {
-
-        # child process
-        $self->_play_mp3_in_child($mp3_file_path);
-        exit;
-    }
-    $self;
+    $self->_play_mp3_in_child( $play_command, $mp3_file_path );
 }
 
 sub _play_sound {
@@ -132,7 +143,7 @@ App::WithSound - Execute commands with sound
 
 =head1 VERSION
 
-This document describes App::WithSound version 1.0.1
+This document describes App::WithSound version 1.0.2
 
 
 =head1 DESCRIPTION
@@ -142,11 +153,11 @@ This module contains utilities for L<<with-sound>>.
 
 =head1 DEPENDENCIES
 
-Audio::Play::MPG123 (version 0.63 or later)
-
 Config::Simple (version 4.58 or later)
 
 File::Path::Expand (version 1.02 or later)
+
+File::Which (version 1.09 or later)
 
 Test::Warn (version 0.24 or later)
 
@@ -158,6 +169,11 @@ Test::MockObject::Extends (version 1.20120301 or later)
 moznion  C<< <moznion@gmail.com> >>
 
 Shinpei Maruyama C<< shinpeim[at]gmail.com> >>
+
+
+=head1 CONTRIBUTOR
+
+Syohei YOSHIDA C<< syohex[at]gmail.com >>
 
 
 =head1 LICENCE AND COPYRIGHT
