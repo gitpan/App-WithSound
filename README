@@ -2,7 +2,7 @@ NAME
     with-sound - Command executor with sound
 
 VERSION
-    This document describes with-sound version 1.1.0
+    This document describes with-sound version 1.2.0
 
 SYNOPSIS
         $ with-sound [command] ([argument(s)])
@@ -22,9 +22,20 @@ CONFIGURATION AND ENVIRONMENT
     directory. This resource file specifies the path to sound files. Like
     so:
 
-        SUCCESS: ~/Music/success.mp3
-        FAILURE: ~/Music/failure.mp3
-        RUNNING: ~/Music/running.mp3
+        SUCCESS=~/Music/success.mp3
+        FAILURE=~/Music/failure.mp3
+        RUNNING=~/Music/running.mp3
+
+    If you want to play the different sound corresponded to discrete command, please use section notation as the following.
+
+        [prove]
+        SUCCESS=~/Music/success_prove.mp3
+        FAILURE=~/Music/failure_prove.mp3
+        RUNNING=~/Music/running_prove.mp3
+
+    In case of the above example, configured sounds will be played if you execute 'prove'.
+    And if other commands are executed, this application uses default settings.
+    ("Default settings" means settings that is not specified by section)
 
     You also can specify the paths by environment variables $ENV{'WITH_SOUND_SUCCESS'}, $ENV{'WITH_SOUND_FAILURE'}
     and $ENV{'WITH_SOUND_RUNNING'}.

@@ -2,7 +2,7 @@ package App::WithSound;
 
 use warnings;
 use strict;
-our $VERSION = '1.1.0';
+our $VERSION = '1.2.0';
 
 use Carp;
 use Config::Simple;
@@ -31,7 +31,7 @@ sub run {
         croak 'Usage: $ with-sound [command] ([argument(s)])' . "\n";
     }
 
-    $self->_init;
+    $self->_init( $argv[0] );
 
     my $retval = $self->_execute_command(@argv);
     $retval = 1 if $retval > 255;
@@ -41,9 +41,9 @@ sub run {
 }
 
 sub _init {
-    my ($self) = @_;
+    my ( $self, $command ) = @_;
 
-    $self->_load_sound_paths;
+    $self->_load_sound_paths($command);
     $self->_detect_sound_play_command;
 
     return $self;
@@ -73,23 +73,39 @@ sub _detect_sound_play_command {
 
 sub _load_sound_paths_from_env {
     my ($self) = @_;
-    if ( $self->{env}->{WITH_SOUND_SUCCESS} ) {
-        $self->{success_sound_path} =
-          expand_filename( $self->{env}->{WITH_SOUND_SUCCESS} );
+
+    my %deprecated_envs = (
+        WITH_SOUND_SUCCESS => "success_sound_path",
+        WITH_SOUND_FAILURE => "failure_sound_path",
+        WITH_SOUND_RUNNING => "running_sound_path",
+    );
+    for my $env_name ( keys %deprecated_envs ) {
+        if ( my $sound_file_path = $self->{env}->{$env_name} ) {
+            carp
+qq{[WARNING] "$env_name" is deprecated. Please use "PERL_$env_name"\n};
+            $self->{ $deprecated_envs{$env_name} } =
+              expand_filename($sound_file_path);
+        }
     }
-    if ( $self->{env}->{WITH_SOUND_FAILURE} ) {
-        $self->{failure_sound_path} =
-          expand_filename( $self->{env}->{WITH_SOUND_FAILURE} );
+
+    my %envs = (
+        PERL_WITH_SOUND_SUCCESS => "success_sound_path",
+        PERL_WITH_SOUND_FAILURE => "failure_sound_path",
+        PERL_WITH_SOUND_RUNNING => "running_sound_path",
+    );
+    for my $env_name ( keys %envs ) {
+        if ( my $sound_file_path = $self->{env}->{$env_name} ) {
+            $self->{ $envs{$env_name} } = expand_filename($sound_file_path);
+        }
     }
-    if ( $self->{env}->{WITH_SOUND_RUNNING} ) {
-        $self->{running_sound_path} =
-          expand_filename( $self->{env}->{WITH_SOUND_RUNNING} );
-    }
+
     $self;
 }
 
 sub _load_sound_paths_from_config {
-    my ($self) = @_;
+    my ( $self, $command ) = @_;
+
+    $command ||= '';
 
     # Not exists config file.
     unless ( -f $self->{config_file_path} ) {
@@ -97,16 +113,31 @@ sub _load_sound_paths_from_config {
           "[WARNNING] Please put config file in '$self->{config_file_path}'\n";
         return;
     }
-    my $config = Config::Simple->new( $self->{config_file_path} );
-    $self->{success_sound_path} = expand_filename( $config->param('SUCCESS') );
-    $self->{failure_sound_path} = expand_filename( $config->param('FAILURE') );
-    $self->{running_sound_path} = expand_filename( $config->param('RUNNING') );
+    my %config;
+    eval { Config::Simple->import_from( $self->{config_file_path}, \%config ) };
+    print STDERR "Configuration file has some errors."
+      . "Please check your '.withsound-rc' file.\n"
+      . "(Didn't you write plural format in configuration file?)\n"
+      if $@;
+
+    $self->{success_sound_path} =
+      expand_filename( $config{"$command.SUCCESS"}
+          || $config{'default.SUCCESS'}
+          || $config{'SUCCESS'} );
+    $self->{failure_sound_path} =
+      expand_filename( $config{"$command.FAILURE"}
+          || $config{'default.FAILURE'}
+          || $config{'FAILURE'} );
+    $self->{running_sound_path} =
+      expand_filename( $config{"$command.RUNNING"}
+          || $config{'default.RUNNING'}
+          || $config{'RUNNING'} );
     $self;
 }
 
 sub _load_sound_paths {
-    my ($self) = @_;
-    $self->_load_sound_paths_from_config;
+    my ( $self, $command ) = @_;
+    $self->_load_sound_paths_from_config($command);
 
     # load from env after config so environment variables are prior to config
     $self->_load_sound_paths_from_env;
@@ -185,7 +216,7 @@ App::WithSound - Execute commands with sound
 
 =head1 VERSION
 
-This document describes App::WithSound version 1.1.0
+This document describes App::WithSound version 1.2.0
 
 
 =head1 DESCRIPTION
